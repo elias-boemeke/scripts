@@ -14,11 +14,16 @@ mode="$1"
 
 if [ "$mode" = "bar" ]; then
   if [ -z `grep up /sys/class/net/$iface/operstate` ]; then
-    printf "$emoji"
+    printf "$emoji off"
     exit 0
   fi
 
-  printf "%s %s\n" "$emoji" "`curl -s 'wttr.in/?format=%C+%t'`"
+  w="`curl -s 'wttr.in/?format=%C+%t'`"
+  if [ "$?" != 0 ] || [ ! -z "`printf "$w" | sed -n "/Internal Server Error/p"`" ]; then
+    w="failed"
+  fi
+
+  printf "%s %s\n" "$emoji" "$w"
 
 elif [ "$mode" = "simple" ]; then
   curl -s 'wttr.in/?0q'
