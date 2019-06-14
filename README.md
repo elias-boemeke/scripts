@@ -1,6 +1,6 @@
 # scripts
 
-automation -> comfort
+automation for fun
 
 
 ### i3-gaps-toggle.sh
