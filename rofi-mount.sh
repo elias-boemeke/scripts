@@ -4,8 +4,9 @@
 # supports also android devices
 
 
-IFS='
+nl='
 '
+IFS="$nl"
 # notify headline
 nothl="rofi-mount"
 
@@ -34,6 +35,11 @@ run_mount() {
   prure="^\\("
   i=0
   for x in `printf "%s" "$excl"`; do
+    # not everything in / shall be excluded
+    if [ "$x" = "/" ]; then
+      continue
+    fi
+    # build a regex that excludes all mounted paths
     if [ "$i" = 0 ]; then
       prure="${prure}$x"
       i=1
@@ -43,8 +49,22 @@ run_mount() {
   done
   prure="${prure}\\)\\($\|/.*$\\)"
 
-  dir=`find "/mnt" "/media" "${HOME}/usermount" -regex "$prure" -prune -not -regex "$prure" 2> /dev/null | rofi -dmenu -p "select or enter mountpoint"`
-  [ "`expr "$dir" : "$prure"`" != 0 ] && notify-send "$nothl" "directory '$dir' is part of another mount device" && exit 1
+  dirs=`find "/mnt" "/media" "${HOME}/usermount" 2> /dev/null`
+  dir=""
+  i=0
+  for d in $dirs; do
+    if [ "`expr "$d" : "$prure"`" != 0 ]; then
+      if [ "$i" = 0 ]; then
+        dir="$d"
+        i=1
+      else
+        dir="$dir$nl$d"
+      fi
+    fi
+  done
+  dir=`printf "%s\n" "$dir" | rofi -dmenu -p "select or enter mountpoint"`
+  [ -z "$dir" ] && exit 0
+  [ ! -z "`expr "$dir" : "$prure"`" ] && notify-send "$nothl" "directory '$dir' is part of another mount device" && exit 1
   if [ ! -d "$dir" ]; then
     mkdir -p "$dir"
     [ "$?" != 0 ] && sudo -A mkdir -p "$dir"

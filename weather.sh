@@ -3,9 +3,6 @@
 iface="enp3s0"
 emoji=""
 
-file="/tmp/custom/weather/wttr.png"
-dir=`expr "$file" : '\(.*/\)'`
-
 if [ "$#" -eq 0 ]; then
   exit 1
 fi
@@ -28,10 +25,11 @@ if [ "$mode" = "bar" ]; then
 elif [ "$mode" = "simple" ]; then
   curl -s 'wttr.in/?0q'
 
+elif [ "$mode" = "full" ]; then
+  curl -s 'wttr.in/?qF'
+
 elif [ "$mode" = "png" ]; then
-  [ ! -d "$dir" ] && mkdir -p "$dir"
-  curl -s 'wttr.in/_q.png' > "$file"
-  feh "$file"
+  curl -s 'wttr.in/_qpF.png' | feh -
 
 else
   echo "unsupported mode '$mode'"
