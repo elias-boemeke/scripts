@@ -53,7 +53,7 @@ run_mount() {
   dir=""
   i=0
   for d in $dirs; do
-    if [ "`expr "$d" : "$prure"`" != 0 ]; then
+    if [ -z "`expr "$d" : "$prure"`" ]; then
       if [ "$i" = 0 ]; then
         dir="$d"
         i=1
@@ -76,6 +76,7 @@ run_mount() {
     device=`printf "%s\n" "$selected" | awk '{printf $2}'`
     sudo -A mount "$device" "$dir"
     [ "$?" != 0 ] && notify-send "$nothl" "failed to mount '$device' to '$dir'" && exit 1
+
     # check if ownership change is necessary
     [ "`stat --format "%U:%G" "$dir"`" = "${USER}:users" ] || sudo -A chown -R "$USER:users" "$dir"
     # giving permission to user may fail
@@ -113,7 +114,7 @@ run_unmount() {
     ump=`printf "%s\n" "$selected" | awk '{print $2}'`
     sudo -A umount "$ump"
     [ "$?" != 0 ] && notify-send "$nothl" "unable to unmount device at '$ump'" && exit 1
-    notify-send "$nothl" "device unmount from '$ump'"
+    notify-send "$nothl" "device unmounted from '$ump'"
     
   elif [ "$mode" = "A" ]; then
     ump=`expr "$selected" : '^.\{4\}\(.*\)'`
