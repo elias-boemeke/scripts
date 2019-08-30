@@ -1,6 +1,6 @@
 #! /bin/sh
 
-op=`echo "Shutdown\nReboot\nExit i3" | rofi -dmenu -l 3 -i -p "Select Option"`
+op=`printf "Shutdown\nReboot\nExit i3" | rofi -dmenu -l 3 -i -p "Select Option"`
 if [ "$op" = "Shutdown" ]; then
   poweroff
 elif [ "$op" = "Reboot" ]; then
