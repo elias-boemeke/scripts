@@ -1,4 +1,4 @@
-# scripts
+# scripts (README outdated)
 
 automation for fun
 
