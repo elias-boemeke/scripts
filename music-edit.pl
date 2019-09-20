@@ -264,7 +264,7 @@ sub want {
   for (`ls`) {
     chomp;
     /^(\d+) - / and $n = $1 + 0;
-    system "taggo \"$_\" -l \"$album\" -n \"$n\"";
+    system "taggo \"$_\" -l \"$album\" -k \"$n\"";
     $written += 1;
   }
   print "meta data of $written " . files($written) . ' written';
