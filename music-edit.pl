@@ -18,11 +18,11 @@ my @opinfo = (
   ['rnfeat', 'red',    'rename all files that have a feat. in title instead of artist'],
   ['lgaps',  'yellow', 'list numeric gaps, names have to be preceded with numbers'],
   ['mvdown', 'red',    'close all numeric gaps by appropriate moving, see lgaps'],
-  ['lbfmt',  'yellow', 'list files with bad audio format, which can\'t be used by taffy'],
+  ['lbfmt',  'yellow', 'list files with bad audio format, which can\'t be used by taggo'],
   ['convbf', 'red',    'convert files of bad format, see lbfmt'],
   ['lmeta',  'green',  'show meta data of all files'],
-  ['wmeta',  'red',    'write metadata to the files with taffy'],
-  ['walb',   'red',    'write an album to the metadata of the files']
+  ['wmeta',  'red',    'write metadata to the files with taggo'],
+  ['want',   'red',    'write an album and track numbers to the metadata']
 );
 
 # main routine
@@ -75,6 +75,10 @@ sub showInteractive {
   return $line;
 }
 
+sub files {
+  return ($_[0] != 1) && 'files' || 'file';
+}
+
 # functions for music editing
 sub list {
   system 'ls -w 1';
@@ -83,19 +87,22 @@ sub list {
 sub lbvt {
   for (`ls`) {
     chomp;
-    print "'$_'" if /\(Official Video\)|\(Official HD Video\)/;
+    print "'$_'" if /\(Official Video\)|\(Official HD Video\)|\(Music Video\)/;
   }
 }
 
 sub rnbvt {
+  my $moved = 0;
   for (`ls`) {
     chomp;
-    if (/\(Official Video\)|\(Official HD Video\)/) {
+    if (/\(Official Video\)|\(Official HD Video\)|\(Music Video\)/) {
       my $old = $_;
-      s/\s*(\(Official Video\)|\(Official HD Video\))//;
-      system "mv -v \"$old\" \"$_\"";
+      s/\s*(\(Official Video\)|\(Official HD Video\)|\(Music Video\))//;
+      system "mv \"$old\" \"$_\"";
+      $moved += 1;
     }
   }
+  print "$moved " . files($moved) . ' renamed';
 }
 
 sub ldbl {
@@ -120,32 +127,37 @@ sub ldbl {
 sub lbdash {
   for (`ls`) {
     chomp;
-    /^[^-]* - [^-]* - [^-]*\.[^.]{3,4}$/ || print;
+    /^\d+ - ([^-]|\S-\S)+ - ([^-]|\S-\S)+\.[^.]{3,4}$/ || print;
   }
 }
 
 sub lfeat {
   for (`ls`) {
     chomp;
-    print "'$_'" if /^(\d+ - )?[^-]* - [^-]*([( \[][Ff]([Ee][Aa])?[Tt]\.? )[^-]*\.[^.]{3,4}$/;
+    print "'$_'" if /^\d+ - ([^-]|\S-\S)+ - ([^-]|\S-\S)+[( \[][Ff]([Ee][Aa])?[Tt]\.? ([^-]|\S-\S)*\.[^.]{3,4}$/;
   }
 }
 
 sub rnfeat {
+  my $moved = 0;
   for (`ls`) {
     chomp;
     my @r = (
-      '((\d+ - )?[^-]* )',
-      '(- [^-]*\S)',
-      '([( \[][Ff]([Ee][Aa])?[Tt]\.? [^\])]*[\])])',
-      '( [^-]*)?',
-      '(\.[^.]{3,4})'
+      '\d+',
+      '(?:[^-]|\S-\S)',
+      '[Ff](?:[Ee][Aa])?[Tt]\.?',
+      '[^.]{3,4}'
     );
-    if (/^$r[0]$r[1]\s*$r[2]\s*$r[3]$r[4]$/) {
-      my $bp = $6 || '';
-      system "mv -v \"$_\" \"$1$4 $3$bp$7\"";
+
+    if (/^($r[0]) - ($r[1]+) - ($r[1]+-?\S)\s*(?:(\($r[2] $r[1]+?\))\s*($r[1]*)| ($r[2] [^(]+)| ($r[2] [^(]+\S)\s*(\(.*\)))\.($r[3])$/) {
+      my $feat = $4 || $6 || $7;
+      my $appendix = $5 || $8 || '';
+      $appendix = " $appendix" if $appendix ne '';
+      system "mv \"$_\" \"$1 - $2 $feat - $3$appendix.$9\"";
+      $moved += 1;
     }
   }
+  print "$moved " . files($moved) . ' moved';
 }
 
 sub lgaps {
@@ -180,7 +192,7 @@ sub mvdown {
     }
     $c += 1;
   }
-  print "$moved files moved";
+  print "$moved " . files($moved) . ' moved';
 }
 
 sub lbfmt {
@@ -202,17 +214,17 @@ sub convbf {
 sub lmeta {
   for (`ls`) {
     chomp;
-    my @to = `taffy \"$_\"`;
+    my @to = `taggo \"$_\"`;
     map chomp, @to;
     my $name = $to[0];
 
     my @info = ();
     my $track; my $artist; my $title; my $album;
     for (@to) {
-      /^track:\s*(.*)/  and $track  = $1;
-      /^artist:\s*(.*)/ and $artist = $1;
-      /^title:\s*(.*)/  and $title  = $1;
-      /^album:\s*(.*)/  and $album  = $1;
+      /^\s*Track: (.*)/  and $track  = $1;
+      /^\s*Artist: (.*)/ and $artist = $1;
+      /^\s*Title: (.*)/  and $title  = $1;
+      /^\s*Album: (.*)/  and $album  = $1;
     }
     $track  && push @info, "'$track'";
     $artist && push @info, "'$artist'";
@@ -229,29 +241,32 @@ sub lmeta {
 }
 
 sub wmeta {
-  my $n;
   my $artist;
   my $title;
   my $written = 0;
   for (`ls`) {
     chomp;
-    /^\d+ - [^-]* - [^-]*\.[^.]{3,4}$/ || (print "excluding '$_'") && next;
-    /^(\d+)/ and $n = $1 + 0;
-    /^\d+ - ([^-]*) - .*/ and $artist = $1;
-    /^\d+ - [^-]* - (.*)\.[^.]{3,4}$/ and $title = $1;
-    system "taffy \"$_\" -n \"$n\" -r \"$artist\" -t \"$title\"";
+    /^\d+ - ([^-]|\S-\S)+ - ([^-]|\S-\S)+\.[^.]{3,4}$/ || (print "excluding '$_'") && next;
+    /^\d+ - ((?:[^-]|\S-\S)+) - .*/ and $artist = $1;
+    /^\d+ - (?:[^-]|\S-\S)+ - (.*)\.[^.]{3,4}$/ and $title = $1;
+    system "taggo \"$_\" -r \"$artist\" -t \"$title\"";
     $written += 1;
   }
-  print "meta data of $written files written";
+  print "meta data of $written " . files($written) . ' written';
 }
 
-sub walb {
+sub want {
   printf "give album name:\n> ";
   my $album = <STDIN>;
   chomp $album;
+  my $n;
+  my $written = 0;
   for (`ls`) {
     chomp;
-    system "taffy \"$_\" -l \"$album\"";
+    /^(\d+) - / and $n = $1 + 0;
+    system "taggo \"$_\" -l \"$album\" -n \"$n\"";
+    $written += 1;
   }
+  print "meta data of $written " . files($written) . ' written';
 }
 

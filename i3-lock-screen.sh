@@ -24,6 +24,8 @@
 # --no-dpms       : disable display power management signaling
 
 
+DISPLAY_TIME=10
+
 dir="/tmp/custom"
 img_png="$dir/lock.png"
 img_jpg="$dir/lock.jpg"
@@ -110,13 +112,13 @@ magick composite -geometry "+78+990" "${HOME}/Pictures/System/locked.png" "$img_
 pkill -u $USER -USR1 dunst
 # pause mpd if playing
 mpc | sed "2q;d" | grep '^\[playing\]'
-if [ $? ]; then
+if [ $? == 0 ]; then
   MPD_ACTIVE='y'
   mpc pause
 fi
 # set a 5 second cooldown for display
 if [ "$OPTION_DPMS" ]; then
-  xset +dpms dpms 5 5 5
+  xset +dpms dpms "$DISPLAY_TIME" "$DISPLAY_TIME" "$DISPLAY_TIME"
 fi
 
 # start i3-lock
@@ -142,4 +144,5 @@ i3lock -n -i "$img_png" "${PARAM[@]}"
 
 # revert changes
 revert
+true # get a nice return value
 
