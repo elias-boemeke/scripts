@@ -1,26 +1,22 @@
 #! /bin/sh
 
-iface="enp3s0"
 emoji=""
 
 if [ "$#" -eq 0 ]; then
+  echo "Usage: weather.sh mode"
+  echo "supported modes: bar simple full png"
   exit 1
 fi
 
 mode="$1"
 
+if [ -z "`ip r | perl -ne '/^default via \d+(\.\d+){3} dev / && print'`" ]; then
+  printf "$emoji off"
+  exit 0
+fi
+
 if [ "$mode" = "bar" ]; then
-  if [ -z `grep up /sys/class/net/$iface/operstate` ]; then
-    printf "$emoji off"
-    exit 0
-  fi
-
-  w="`curl -s 'wttr.in/?format=%C+%t'`"
-  if [ "$?" != 0 ] || [ ! -z "`printf "$w" | sed -n "/Internal Server Error/p"`" ]; then
-    w="failed"
-  fi
-
-  printf "%s %s\n" "$emoji" "$w"
+  curl -s 'wttr.in/?format=%c+%t'
 
 elif [ "$mode" = "simple" ]; then
   curl -s 'wttr.in/?0q'
