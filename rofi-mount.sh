@@ -113,13 +113,13 @@ run_unmount() {
   if [ "$mode" = "P" ]; then
     ump=`printf "%s\n" "$selected" | awk '{print $2}'`
     sudo -A umount "$ump"
-    [ "$?" != 0 ] && notify-send "$nothl" "unable to unmount device at '$ump'" && exit 1
+    [ "$?" != 0 ] && notify-send -u critical "$nothl" "unable to unmount device at '$ump'" && exit 1
     notify-send "$nothl" "device unmounted from '$ump'"
     
   elif [ "$mode" = "A" ]; then
     ump=`expr "$selected" : '^.\{4\}\(.*\)'`
     fusermount -u "$ump"
-    [ "$?" != 0 ] && notify-send "$nothl" "unable to unmount device at '$ump'" && exit 1
+    [ "$?" != 0 ] && notify-send -u critical "$nothl" "unable to unmount device at '$ump'" && exit 1
     notify-send "$nothl" "device unmounted from '$ump'"
 
   fi
