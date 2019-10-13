@@ -15,12 +15,12 @@ unless ($1) {
   exit 0;
 }
 
-unless (`cat \"/sys/class/net/$1/operstate\"` == 'up') {
+unless (`cat \"/sys/class/net/$1/operstate\"` eq "up\n") {
   print $notconn;
   exit 0;
 }
 
-system "ls /sys/class/net/$1/wireless &> /dev/null";
+`ls /sys/class/net/$1/wireless 2>/dev/null`;
 if ($? == 0) {
   print $wireless;
 } else {
