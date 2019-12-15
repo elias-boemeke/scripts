@@ -214,7 +214,9 @@ sub convbf {
 sub lmeta {
   for (`ls`) {
     chomp;
-    my @to = `taggo \"$_\"`;
+    my $file = $_;
+    $file =~ s/\$/\\\$/g;
+    my @to = `taggo \"$file\"`;
     map chomp, @to;
     my $name = $to[0];
 
@@ -249,7 +251,9 @@ sub wmeta {
     /^\d+ - ([^-]|\S-\S)+ - ([^-]|\S-\S)+\.[^.]{3,4}$/ || (print "excluding '$_'") && next;
     /^\d+ - ((?:[^-]|\S-\S)+) - .*/ and $artist = $1;
     /^\d+ - (?:[^-]|\S-\S)+ - (.*)\.[^.]{3,4}$/ and $title = $1;
-    system "taggo \"$_\" -r \"$artist\" -t \"$title\"";
+    my $file = $_;
+    $file =~ s/\$/\\\$/g;
+    system "taggo \"$file\" -r \"$artist\" -t \"$title\"";
     $written += 1;
   }
   print "meta data of $written " . files($written) . ' written';
@@ -264,7 +268,9 @@ sub want {
   for (`ls`) {
     chomp;
     /^(\d+) - / and $n = $1 + 0;
-    system "taggo \"$_\" -l \"$album\" -k \"$n\"";
+    my $file = $_;
+    $file =~ s/\$/\\\$/g;
+    system "taggo \"$file\" -l \"$album\" -k \"$n\"";
     $written += 1;
   }
   print "meta data of $written " . files($written) . ' written';
