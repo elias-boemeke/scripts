@@ -3,32 +3,46 @@
 emoji=""
 
 if [ "$#" -eq 0 ]; then
-  echo "Usage: weather.sh mode"
-  echo "supported modes: bar simple full png"
+  printf "Usage: weather.sh <mode>"
+  printf "supported modes: bar simple full png"
   exit 1
 fi
 
 mode="$1"
 
 if [ -z "`ip r | perl -ne '/^default via \d+(\.\d+){3} dev / && print'`" ]; then
-  printf "$emoji off"
+  printf "$emoji offline"
   exit 0
 fi
 
+OUTPUT=
 if [ "$mode" = "bar" ]; then
-  curl -s 'wttr.in/?format=%c+%t'
+  OUTPUT=`curl -s 'wttr.in/?format=%c+%t'`
 
 elif [ "$mode" = "simple" ]; then
-  curl -s 'wttr.in/?0q'
+  OUTPUT=`curl -s 'wttr.in/?0q'`
 
 elif [ "$mode" = "full" ]; then
-  curl -s 'wttr.in/?qF'
+  OUTPUT=`curl -s 'wttr.in/?qF'`
 
 elif [ "$mode" = "png" ]; then
-  curl -s 'wttr.in/_qpF.png' | feh -
+  OUTPUT=`curl -s 'wttr.in/?_qpF.png'`
 
 else
-  echo "unsupported mode '$mode'"
+  printf "unsupported mode '$mode'"
   exit 1
 
 fi
+
+if [ "$?" != 0 ]; then
+  printf "$emoji error"
+  exit 1
+fi
+
+# display output or pipe to feh
+if [ "$mode" = "png" ]; then
+  printf "$OUTPUT" | feh -
+else
+  printf "$OUTPUT"
+fi
+
