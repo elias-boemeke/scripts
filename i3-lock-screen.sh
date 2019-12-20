@@ -81,7 +81,7 @@ parse() {
 revert() {
   pkill -u $USER -USR2 dunst
   if [ "$MPD_ACTIVE" ]; then
-    mpc play
+    mpc -q play
   fi
   if [ "OPTION_DPMS" ]; then
     xset dpms 0 0 0
@@ -106,15 +106,15 @@ if [ "$OPTION_BLUR" ]; then
   convert "$img_png" -blur 0x1 "$img_png"
 fi
 # draw the locked overlay into the image
-magick composite -geometry "+78+990" "${HOME}/Pictures/System/locked.png" "$img_png" "$img_png"
+magick composite -geometry "+78+990" "/multimedia/pictures/system/locked.png" "$img_png" "$img_png"
 
 # Suspend dunst and lock, then resume dunst when unlocked.
 pkill -u $USER -USR1 dunst
 # pause mpd if playing
-mpc | sed "2q;d" | grep '^\[playing\]'
+mpc | sed "2q;d" | grep -q '^\[playing\]'
 if [ $? == 0 ]; then
   MPD_ACTIVE='y'
-  mpc pause
+  mpc -q pause
 fi
 # set a 5 second cooldown for display
 if [ "$OPTION_DPMS" ]; then
