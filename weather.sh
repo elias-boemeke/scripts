@@ -3,8 +3,8 @@
 emoji=""
 
 if [ "$#" -eq 0 ]; then
-  printf "Usage: weather.sh <mode>"
-  printf "supported modes: bar simple full png"
+  printf "Usage: weather.sh <mode>\n"
+  printf "supported modes: bar simple full png\n"
   exit 1
 fi
 
@@ -35,6 +35,12 @@ else
 fi
 
 if [ "$?" != 0 ]; then
+  printf "$emoji error"
+  exit 1
+fi
+
+# match illformed answers
+if [ ! -z "`echo \"$OUTPUT\" | grep '^Unknown location;'`" ]; then
   printf "$emoji error"
   exit 1
 fi
