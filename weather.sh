@@ -1,6 +1,7 @@
 #! /bin/sh
 
 emoji=""
+pngfile="/tmp/custom/wttr.in_png"
 
 if [ "$#" -eq 0 ]; then
   printf "Usage: weather.sh <mode>\n"
@@ -26,7 +27,8 @@ elif [ "$mode" = "full" ]; then
   OUTPUT=`curl -s 'wttr.in/?qF'`
 
 elif [ "$mode" = "png" ]; then
-  OUTPUT=`curl -s 'wttr.in/?_qpF.png'`
+  [ ! -d "/tmp/custom" ] && mkdir "/tmp/custom"
+  curl -s 'wttr.in/Kassel_qpF.png' > "$pngfile"
 
 else
   printf "unsupported mode '$mode'"
@@ -47,8 +49,9 @@ fi
 
 # display output or pipe to feh
 if [ "$mode" = "png" ]; then
-  printf "$OUTPUT" | feh -
+  feh "$pngfile"
+  rm "$pngfile"
 else
-  printf "$OUTPUT"
+  printf "%s" "$OUTPUT"
 fi
 
