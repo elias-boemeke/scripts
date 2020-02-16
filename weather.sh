@@ -11,6 +11,15 @@ fi
 
 mode="$1"
 
+if [ `pgrep openvpn` ]; then
+  if [ "$mode" = png ]; then
+    notify-send "weather.sh" "Weather is disabled when VPN is active"
+  else
+    printf "🌴"
+  fi
+  exit 0
+fi
+
 if [ -z "`ip r | perl -ne '/^default via \d+(\.\d+){3} dev / && print'`" ]; then
   printf "$emoji offline"
   exit 0

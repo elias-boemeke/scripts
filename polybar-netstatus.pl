@@ -4,26 +4,37 @@
 my $notconn = '';
 my $wireless = '';
 my $ethernet = '';
+my $vpn = '';
 #  
 #  
 #  
 #   
+#    
 
-`ip r` =~ /^default via \S+ dev (\S+)/;
-unless ($1) {
-  print $notconn;
-  exit 0;
+sub connstate {
+  `ip r | grep '^default via'` =~ /^default via \S+ dev (\S+)/;
+  unless ($1) {
+    print $notconn;
+    return;
+  }
+
+  unless (`cat \"/sys/class/net/$1/operstate\"` eq "up\n") {
+    print $notconn;
+    return;
+  }
+
+  `ls /sys/class/net/$1/wireless 2>/dev/null`;
+  if ($? == 0) {
+    print $wireless;
+  } else {
+    print $ethernet;
+  }
 }
 
-unless (`cat \"/sys/class/net/$1/operstate\"` eq "up\n") {
-  print $notconn;
-  exit 0;
+sub vpnstate {
+  `pgrep openvpn` and print " $vpn";
 }
 
-`ls /sys/class/net/$1/wireless 2>/dev/null`;
-if ($? == 0) {
-  print $wireless;
-} else {
-  print $ethernet;
-}
+connstate;
+vpnstate;
 

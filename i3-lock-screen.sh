@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 # this script combines several ideas from different authors
 # for references see:
@@ -18,10 +18,12 @@
 # - revert all changes back to their original state
 
 # options:
-# --glitch, -g    : glitchify the captured image 
-# --blur, -b      : blur the captured image
-# --workspace, -w : switch to a safe workspace
-# --no-dpms       : disable display power management signaling
+# WARN longoptions not supported at the moment
+# --glitch, -g     : glitchify the captured image 
+# --blur, -b       : blur the captured image
+# --workspace, -w  : switch to a safe workspace
+# --icon, -i [pos] : position the 'locked' icon
+# --no-dpms        : disable display power management signaling
 
 
 DISPLAY_TIME=10
@@ -57,22 +59,15 @@ glitch() {
 parse() {
   OPTION_DPMS='1'
 
-  for arg in "$@"; do
-    if [ "$arg" == '-g' ] || [ "$arg" == '--glitch' ]; then
-      OPTION_GLITCH='1'
-
-    elif [ "$arg" == '-b' ] || [ "$arg" == '--blur' ]; then
-      OPTION_BLUR='1'
-
-    elif [ "$arg" == '-w' ] || [ "$arg" == '--workspace' ]; then
-      OPTION_SWITCHWORKSPACE='1'
-
-    elif [ "$arg" == '--no-dpms' ]; then
-      OPTION_DPMS=''
-
-    else
-      echo "dropping unknown option '$arg'" 1>&2
-    fi
+  i=0
+  while getopts "gbwi:" opt; do
+    case $opt in
+      g) OPTION_GLITCH='1' ;;
+      b) OPTION_BLUR='1' ;;
+      w) OPTION_SWITCHWORKSPACE='1' ;;
+      i) OPTION_ICONPOS="$OPTARG" ;;
+      ?) echo "Failed to parse arguments..."; exit 1 ;;
+    esac  
   done
 }
 
@@ -89,6 +84,9 @@ revert() {
   [ -f "$img_png" ] && rm "$img_png"
   [ -f "$img_jpg" ] && rm "$img_jpg"
 }
+
+#######################################################################
+
 # execute this before anything else
 trap revert HUP INT TERM
 
@@ -106,13 +104,15 @@ if [ "$OPTION_BLUR" ]; then
   convert "$img_png" -blur 0x1 "$img_png"
 fi
 # draw the locked overlay into the image
-magick composite -geometry "+78+990" "/multimedia/pictures/system/locked.png" "$img_png" "$img_png"
+if [ "$OPTION_ICONPOS" ]; then
+  magick composite -geometry "$OPTION_ICONPOS" "/multimedia/pictures/system/locked.png" "$img_png" "$img_png"
+fi
 
 # Suspend dunst and lock, then resume dunst when unlocked.
 pkill -u $USER -USR1 dunst
 # pause mpd if playing
 mpc | sed "2q;d" | grep -q '^\[playing\]'
-if [ $? == 0 ]; then
+if [ $? = 0 ]; then
   MPD_ACTIVE='y'
   mpc -q pause
 fi
@@ -131,7 +131,7 @@ PARAM=( --insidecolor=373445ff --ringcolor=ffffffff --line-uses-inside \
         --keyhlcolor=d23c3dff --bshlcolor=d23c3dff --separatorcolor=00000000 \
         --insidevercolor=fecf4dff --insidewrongcolor=d23c3dff \
         --ringvercolor=ffffffff --ringwrongcolor=ffffffff --indpos="x+86:y+1003" \
-        --radius=15 --veriftext="" --wrongtext="" )
+        --radius=15 --veriftext="" --wrongtext="" --noinputtext="")
 
 # params of the original glitch script
 #PARAM=( --bar-indicator --bar-position h --bar-direction 1 --redraw-thread -t "" \
