@@ -54,6 +54,9 @@ fi
 if [ ! -z "`echo \"$OUTPUT\" | grep '^Unknown location;'`" ]; then
   printf "$emoji error"
   exit 1
+elif [ ! -z "`echo \"$OUTPUT\" | grep -i 'sorry'`" ]; then
+  printf "$emoji no service"
+  exit 1
 fi
 
 # display output or pipe to feh
