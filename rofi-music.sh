@@ -6,7 +6,7 @@ if [ "$1" = bg ]; then
   exit
 fi
 
-DIR="/multimedia/audio/music"
+DIR="/media/wdo/multimedia/audio/music"
 SONG=`find "$DIR" -type f | rofi -dmenu -i -p "play"`
 [ -z "$SONG" ] && exit
 printf "playing: \e[4m%s\e[0m\n" "$SONG"

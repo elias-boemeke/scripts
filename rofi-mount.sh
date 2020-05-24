@@ -49,7 +49,8 @@ run_mount() {
   done
   prure="${prure}\\)\\($\|/.*$\\)"
 
-  dirs=`find "/mnt" "/media" "${HOME}/usermount" 2> /dev/null`
+  # do not search media for now ...
+  dirs=`find "/mnt" "${HOME}/usermount" 2> /dev/null`
   dir=""
   i=0
   for d in $dirs; do
