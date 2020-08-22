@@ -37,7 +37,7 @@ elif [ "$mode" = "full" ]; then
 
 elif [ "$mode" = "png" ]; then
   [ ! -d "/tmp/custom" ] && mkdir "/tmp/custom"
-  curl -s 'wttr.in/Kassel_qpF.png' > "$pngfile"
+  curl -s 'wttr.in/_qpF.png' > "$pngfile"
 
 else
   printf "unsupported mode '$mode'"
@@ -59,9 +59,9 @@ elif [ ! -z "`echo \"$OUTPUT\" | grep -i 'sorry'`" ]; then
   exit 1
 fi
 
-# display output or pipe to feh
+# display output or pipe to image viewer
 if [ "$mode" = "png" ]; then
-  feh "$pngfile"
+  sxiv "$pngfile"
   rm "$pngfile"
 else
   printf "%s" "$OUTPUT"

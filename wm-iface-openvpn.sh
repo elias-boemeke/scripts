@@ -1,5 +1,8 @@
 #! /bin/sh
 
+# systemd based script
+
+
 if [ -z `pgrep openvpn` ]; then
   notify-send "OpenVPN" "Starting VPN connection..."
   sudo systemctl start openvpn-client-airvpn
