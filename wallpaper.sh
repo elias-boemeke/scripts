@@ -8,7 +8,7 @@ function usage {
   echo -e "Usage: ./`basename $0` [-h] [-u MIN]"
   echo -e "no args:\tset random wallpaper from \$HOME/.local/share/wallpaper"
   echo -e "-h:\t\tshow usage"
-  echo -e "-u MIN:\t\tloop that updates wallpaper every 30 or MIN minutes"
+  echo -e "-u MIN:\t\tloop that updates wallpaper every MIN minutes"
 }
 
 function setwallpaper {
@@ -24,8 +24,6 @@ while getopts $optstring opt; do
       exit 0
       ;;
     u)
-      test -z "$OPTARG" && echo "./`basename $0`: Must supply an argument to option -u" >&2 && exit 1
-      wait=30
       # check if $OPTARG is number
       if test -n $OPTARG && test "$OPTARG" -eq "$OPTARG" 2> /dev/null; then
           wait=$OPTARG
